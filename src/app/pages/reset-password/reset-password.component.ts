@@ -178,8 +178,11 @@ export class ResetPasswordComponent implements OnInit {
     private router: Router
   ) {}
 
+  loading = true;
+
   async ngOnInit() {
     const result = await this.supabase.handleAuthCallback();
+    this.loading = false;
 
     if (result.error) {
       this.error = result.error;

@@ -1,15 +1,13 @@
 import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseService {
   private _supabase: SupabaseClient;
 
   constructor() {
-    this._supabase = createClient(
-      'https://gdqfcrwhfceodrnzcdxk.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkcWZjcndoZmNlb2RybnpjZHhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MTk3NTEsImV4cCI6MjA5NzE5NTc1MX0.l6tAFbQn8G7m3tXZil_LpgwiREFQTYsALRQp4slWt90'
-    );
+    this._supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
   }
 
   get supabase() {
@@ -45,5 +43,15 @@ export class SupabaseService {
 
   async updatePassword(password: string) {
     return this._supabase.auth.updateUser({ password });
+  }
+
+  async sendResetPasswordEmail(email: string) {
+    const baseUrl = environment.production
+      ? 'https://dilmer23.github.io/marcadores_landing'
+      : 'http://localhost:4200';
+
+    return this._supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${baseUrl}/auth/reset-password`,
+    });
   }
 }

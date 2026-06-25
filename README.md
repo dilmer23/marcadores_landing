@@ -1,59 +1,87 @@
 # MarcadoresLanding
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.15.
+Landing page con autenticación via Supabase.
+
+## Configuración
+
+1. Clonar el repo e instalar dependencias:
+
+```bash
+npm install
+```
+
+2. Crear `src/environments/environment.local.ts` con tus credenciales de Supabase:
+
+```ts
+export const environment = {
+  production: true,
+  supabaseUrl: 'https://tu-proyecto.supabase.co',
+  supabaseAnonKey: 'tu-anon-key',
+};
+```
+
+> El archivo `environment.local.ts` está en `.gitignore` para no exponer claves.
+> Durante `ng serve` y `ng build --configuration=production` se usa automáticamente en lugar de `environment.ts`.
+
+## Auth Routes
+
+### `/auth/reset-password`
+
+Página para recuperación de contraseña. Al llegar desde el email de Supabase:
+
+1. Lee el token del hash (`#access_token=...&type=recovery`) o query (`?auth_code=...&type=recovery`)
+2. Setea la sesión via `supabase.auth.setSession()` o `exchangeCodeForSession()`
+3. Muestra formulario para ingresar nueva contraseña
+4. Llama a `supabase.auth.updateUser({ password })`
+
+### `/auth/confirm`
+
+Página de confirmación de email. Al llegar desde el email de verificación:
+
+1. Lee el token y confirma la sesión
+2. Muestra mensaje de éxito y redirige al home
+
+### Configuración en Supabase
+
+En **Authentication > Settings**:
+
+| Campo | Valor |
+|---|---|
+| `SITE_URL` | `http://localhost:4200` |
+| `Redirect URLs` | `http://localhost:4200/auth/reset-password` |
+| | `http://localhost:4200/auth/confirm` |
+
+Al llamar `resetPasswordForEmail()`:
+
+```ts
+supabase.auth.resetPasswordForEmail('user@mail.com', {
+  redirectTo: 'http://localhost:4200/auth/reset-password'
+})
+```
 
 ## Development server
-
-To start a local development server, run:
 
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Navegar a `http://localhost:4200/`.
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Build
 
 ```bash
-ng generate component component-name
+ng build --base-href="/marcadores_landing/" --configuration=production
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Los artefactos quedan en `dist/marcadores_landing/browser/`.
+
+## Deploy a GitHub Pages
 
 ```bash
-ng generate --help
+ng build --base-href="/marcadores_landing/" --configuration=production
+npx angular-cli-ghpages --dir=dist/marcadores_landing/browser
 ```
 
-## Building
+El sitio queda disponible en `https://dilmer23.github.io/marcadores_landing/`.
 
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Asegurate de que en **Settings > Pages** del repo la fuente sea la branch `gh-pages`.
