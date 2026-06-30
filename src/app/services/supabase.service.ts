@@ -7,9 +7,7 @@ export class SupabaseService {
   private _supabase: SupabaseClient;
 
   constructor() {
-    this._supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey, {
-      auth: { flowType: 'implicit' },
-    });
+    this._supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
   }
 
   get supabase() {
@@ -38,6 +36,16 @@ export class SupabaseService {
     if (code) {
       if (queryParams.get('error')) return { type, error: queryParams.get('error_description') || 'Error en verificación' };
       const { error } = await this._supabase.auth.exchangeCodeForSession(code);
+      return { type, error: error?.message || null };
+    }
+
+    // Token hash flow (custom email template)
+    const tokenHash = queryParams.get('token_hash');
+    if (tokenHash && type) {
+      const { error } = await this._supabase.auth.verifyOtp({
+        type: type as any,
+        token_hash: tokenHash,
+      });
       return { type, error: error?.message || null };
     }
 
