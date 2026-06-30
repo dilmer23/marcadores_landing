@@ -7,7 +7,9 @@ export class SupabaseService {
   private _supabase: SupabaseClient;
 
   constructor() {
-    this._supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
+    this._supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey, {
+      auth: { flowType: 'implicit' },
+    });
   }
 
   get supabase() {
