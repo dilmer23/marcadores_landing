@@ -15,11 +15,13 @@ export class SupabaseService {
   }
 
   async handleAuthCallback(): Promise<{ type: string | null; error: string | null }> {
-    // Intenta desde el hash (implicit flow)
+    const queryParams = new URLSearchParams(window.location.search);
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const hashToken = hashParams.get('access_token');
-    const type = hashParams.get('type') || new URLSearchParams(window.location.search).get('type');
 
+    const type = hashParams.get('type') || queryParams.get('type');
+
+    // Implicit flow (hash)
+    const hashToken = hashParams.get('access_token');
     if (hashToken) {
       const { error } = await this._supabase.auth.setSession({
         access_token: hashToken,
@@ -29,12 +31,11 @@ export class SupabaseService {
       return { type, error: error?.message || null };
     }
 
-    // Intenta desde query (PKCE flow)
-    const queryParams = new URLSearchParams(window.location.search);
-    const authCode = queryParams.get('auth_code');
-    if (authCode) {
+    // PKCE flow (query code)
+    const code = queryParams.get('code') || queryParams.get('auth_code');
+    if (code) {
       if (queryParams.get('error')) return { type, error: queryParams.get('error_description') || 'Error en verificación' };
-      const { error } = await this._supabase.auth.exchangeCodeForSession(authCode);
+      const { error } = await this._supabase.auth.exchangeCodeForSession(code);
       return { type, error: error?.message || null };
     }
 
